@@ -2,23 +2,26 @@ import React, {useState} from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
+import Accordion from 'react-bootstrap/Accordion';
+import { useAccordionButton } from 'react-bootstrap';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import InputGroup from 'react-bootstrap/InputGroup';
+
 
 function CsvUploader(){
     const [file, setFile] = useState(null);
-    const [status, setStatus] = useState('initial');
-    
+    const [email, setEmail] = useState(' ');
+
     const handleFileChange = (e)=>{
         if(e.target.files){
-            setStatus('initial');
             setFile(e.target.files[0]);
         }
     };
 
     const handleUpload = async() =>{
         if(file){
-            setStatus('uploading');
-
-            const formData = new  FormData(); // what is this
+            const formData = new FormData(); // what is this
             formData.append('file', file);
 
             try{
@@ -28,14 +31,43 @@ function CsvUploader(){
                 });
                 const data = await result.json();
                 console.log(data);
-                setStatus('success');
+     
 
             }catch(err){
                 console.log(err);
-                setStatus('fail');
 
             }
         }
+    }
+    
+    const handleEmailInput = (e)=>{
+      setEmail(e.target.value);
+      console.log(email);
+  }
+ 
+  const handleEmailSubmit = (e) => {
+    // e.preventDefault();
+    if (email) {
+        console.log('Submitted email:', email);
+        // TODO: sending the email to a backend server
+    }
+    console.log('Submitted email:', '');
+};
+    
+    const ToggleEmail = ({children , eventKey})=>{
+      const decortedOnClick = useAccordionButton(eventKey, 
+        ()=> console.log("user want the file emailed "));
+
+        return (
+          <Button
+          type="button"
+          variant="success"
+          onClick={decortedOnClick}
+          >
+          {children}
+
+          </Button>
+        );
     }
 
     return (
@@ -43,7 +75,7 @@ function CsvUploader(){
         <Card.Header>CSV2JSON Converter</Card.Header>
        
         <Form.Group controlId="formFile" className="mb-3">
-            <Form.Label>Choose a file</Form.Label>
+            <Form.Label></Form.Label>
             <Form.Control type="file" as="input" onChange={handleFileChange}/>
       </Form.Group>
 
@@ -75,27 +107,44 @@ function CsvUploader(){
              </Button>
             )}
 
-        
       </Card.Body>
- 
-
     <Card.Footer className="text-muted">
-        <Result status={status}/>
+       <Row>
+       <Col>
+          <Button
+            type="button"
+            variant="success">
+            Download
+            </Button>
+        </Col>
+        <Col>
+          <Accordion defaultActiveKey="0">
+            <ToggleEmail eventKey="1">Email me </ToggleEmail>
+            <Accordion.Collapse eventKey='1'>
+            <InputGroup className="mb-3 mt-3">
+            <Form.Label></Form.Label>
+            <Form.Control
+              type="email" 
+              placeholder="name@example.com"
+              aria-label="name@example.com"
+              aria-describedby="basic-addon2"
+              onChange={handleEmailInput} 
+            />
+            <Button 
+            variant="outline-secondary" 
+            id="button-addon2"
+            onClick={handleEmailSubmit}>
+            Send
+            </Button>
+          </InputGroup>    
+            </Accordion.Collapse>
+          </Accordion>
+        </Col> 
+       </Row> 
     </Card.Footer>
-
   </Card>);
 };
 
-const Result = ({ status }) => {
-    if (status === "success") {
-      return <p>✅ File uploaded successfully!</p>;
-    } else if (status === "fail") {
-      return <p>❌ File upload failed!</p>;
-    } else if (status === "uploading") {
-      return <p>⏳ Uploading selected file...</p>;
-    } else {
-      return null;
-    }
-  };
+
   
 export default CsvUploader;
