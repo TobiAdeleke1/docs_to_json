@@ -1,7 +1,7 @@
 from django.urls import path
-from . import views
+from .views import hello_world, CSVUploadView
 
 urlpatterns = [
-    path('hello-world/', views.hello_world, name='hello_world'),
-    # path('upload/'), TODO add path functioality
+    path('hello-world/', hello_world, name='hello_world'),
+    path('upload/', CSVUploadView.as_view(), name='csv-upload'),
 ]
