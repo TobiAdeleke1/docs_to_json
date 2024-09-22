@@ -12,10 +12,29 @@ import InputGroup from 'react-bootstrap/InputGroup';
 function CsvUploader(){
     const [file, setFile] = useState(null);
     const [email, setEmail] = useState(' ');
+    const [error, setError] = useState('');
+
+    const MAX_FILE_SIZE = 50*1024*1024; // 50 MB in bytes
 
     const handleFileChange = (e)=>{
         if(e.target.files){
-            setFile(e.target.files[0]);
+            const addedFile = e.target.files[0];
+            // setFile(e.target.files[0]);
+            const isValidFileType = addedFile.name.endsWith('.csv') || addedFile.type === 'text/csv';
+
+            if(!isValidFileType){ //Validate file type
+              setFile(null);
+              setError("Please upload a valid csv file.");
+              return;
+            }
+
+            if(addedFile.size > MAX_FILE_SIZE){ // Validate file size
+               setFile(null);
+               setError('File Size exceeds 50MB Limit. Please upload a smaller file.')
+            }
+
+            setFile(addedFile);
+            setError(""); //clear previous error 
         }
     };
 
@@ -76,7 +95,12 @@ function CsvUploader(){
        
         <Form.Group controlId="formFile" className="mb-3">
             <Form.Label></Form.Label>
-            <Form.Control type="file" as="input" onChange={handleFileChange}/>
+            <Form.Control
+             type="file" 
+             as="input" 
+             onChange={handleFileChange}
+             accept='.csv'
+             />
       </Form.Group>
 
       <Card.Body>
@@ -92,7 +116,8 @@ function CsvUploader(){
                 </ul>
                 </section>
             )}
-            
+             
+          {error && <p style={{color:'red'}}>{error}</p>} 
 
         </Card.Text>
         {file && (
