@@ -1,4 +1,5 @@
 local_website_venv/
+media/
 
 *.pyc
 __pycache__/
