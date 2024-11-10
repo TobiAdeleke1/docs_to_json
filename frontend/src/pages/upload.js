@@ -13,6 +13,7 @@ function CsvUploader(){
     const [file, setFile] = useState(null);
     const [email, setEmail] = useState(' ');
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
 
     const MAX_FILE_SIZE = 50*1024*1024; // 50 MB in bytes
 
@@ -38,23 +39,29 @@ function CsvUploader(){
         }
     };
 
-    const handleUpload = async() =>{
+    const handleUpload = async(e) =>{
+        e.preventDefault();
         if(file){
-            const formData = new FormData(); // what is this
+            const formData = new FormData();
             formData.append('file', file);
 
             try{
-                const result = await fetch('http://localhost:8000/api/upload/',{
+                const response = await fetch('http://localhost:8000/api/upload/',{
                     method:'POST',
                     body:formData
                 });
-                const data = await result.json();
-                console.log(data);
-     
 
+                if (response.ok){
+                  const data = await response.json();
+                  setMessage(`File uploaded successfully: ${data.file_name}`);
+                }else{
+                  setMessage('File upload failed');
+                }
+                
+     
             }catch(err){
                 console.log(err);
-
+                setMessage('File upload failed');
             }
         }
     }
@@ -105,21 +112,23 @@ function CsvUploader(){
 
       <Card.Body>
         <Card.Title>Upload a CSV file, to continue ... </Card.Title>
-        <Card.Text>
+        <div>
             {file && (
-                <section>
+                <div>
                 File details:
+                
                 <ul>
-                    <li>Name: {file.name}</li>
-                    <li>Type: {file.type}</li>
-                    <li>Size: {file.size} bytes</li>
+                   <Card.Text><li>Name: {file.name}</li></Card.Text>
+                   <Card.Text><li>Type: {file.type}</li></Card.Text>
+                   <Card.Text><li>Size: {file.size} bytes</li></Card.Text>
                 </ul>
-                </section>
+                </div>
             )}
              
           {error && <p style={{color:'red'}}>{error}</p>} 
 
-        </Card.Text>
+        </div>
+
         {file && (
             
             <Button 
@@ -131,6 +140,7 @@ function CsvUploader(){
 
              </Button>
             )}
+            {message && <p style={{color:'red'}}>{message}</p>} 
 
       </Card.Body>
     <Card.Footer className="text-muted">
