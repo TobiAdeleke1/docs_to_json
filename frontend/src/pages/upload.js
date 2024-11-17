@@ -53,7 +53,7 @@ function CsvUploader(){
 
                 if (response.ok){
                   const data = await response.json();
-                  setMessage(`File uploaded successfully: ${data.file_name}`);
+                  setMessage(`${data.message}`);
                 }else{
                   setMessage('File upload failed');
                 }
