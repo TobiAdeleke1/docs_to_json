@@ -14,7 +14,8 @@ function CsvUploader(){
     const [email, setEmail] = useState(' ');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-
+    const [fileID, setFileId] = useState(null);
+    
     const MAX_FILE_SIZE = 50*1024*1024; // 50 MB in bytes
 
     const handleFileChange = (e)=>{
@@ -51,34 +52,75 @@ function CsvUploader(){
                     body:formData
                 });
 
-                if (response.ok){
-                  const data = await response.json();
-                  setMessage(`${data.message}`);
-                }else{
-                  setMessage('File upload failed');
+                if (!response.ok){
+                  throw new Error(`Response status: ${response.status}`);
                 }
+
+                const data = await response.json();
+                setMessage(`${data.message}`);
+                setFileId(data.fileID);
                 
-     
             }catch(err){
                 console.log(err);
                 setMessage('File upload failed');
             }
         }
+    };
+
+    const handleDownload = async(e) =>{
+      e.preventDefault();
+  
+      if(fileID){
+         try{
+            const response = await fetch(`http://localhost:8000/api/download/${fileID}/`);
+
+            if (!response.ok){
+              throw new Error(`Response status: ${response.status}`);
+            }
+        
+            const data_blob = await response.blob();
+
+            // A default name 
+            let fileName = 'download_file.json'
+            // Filename 
+            const contentDisposition = response.headers.get('Content-Disposition');
+            if (contentDisposition && contentDisposition.includes('filename=')){
+               //replace default 
+               fileName = contentDisposition.split('filename=')[1].trim().replace(/["']/g, '');
+            }
+            
+            const url = window.URL.createObjectURL(data_blob);
+            const a = document.createElement('a');
+            a.href = url; 
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove(); 
+            // Free Memory 
+            window.URL.revokeObjectURL(url);
+
+         }catch(err){
+            console.log(err);
+            setMessage('Error Loading file From Server');
+         }
+      };
+      console.log('No file uploaded to download');
+
     }
     
     const handleEmailInput = (e)=>{
       setEmail(e.target.value);
       console.log(email);
-  }
- 
-  const handleEmailSubmit = (e) => {
-    // e.preventDefault();
-    if (email) {
-        console.log('Submitted email:', email);
-        // TODO: sending the email to a backend server
     }
-    console.log('Submitted email:', '');
-};
+ 
+    const handleEmailSubmit = (e) => {
+      // e.preventDefault();
+      if (email) {
+          console.log('Submitted email:', email);
+          // TODO: sending the email to a backend server
+      }
+      console.log('Submitted email:', '');
+    };
     
     const ToggleEmail = ({children , eventKey})=>{
       const decortedOnClick = useAccordionButton(eventKey, 
@@ -94,7 +136,7 @@ function CsvUploader(){
 
           </Button>
         );
-    }
+    };
 
     return (
      <Card className="text-center">
@@ -148,7 +190,9 @@ function CsvUploader(){
        <Col>
           <Button
             type="button"
-            variant="success">
+            variant="success"
+            onClick={handleDownload}
+            >
             Download
             </Button>
         </Col>
