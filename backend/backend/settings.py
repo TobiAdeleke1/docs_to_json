@@ -50,6 +50,14 @@ FILE_UPLOAD_HANDLERS = [
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minutes'  # Anonymous User allowed 10 requests per minutes
+    }
+}
 
 ROOT_URLCONF = "backend.urls"
 
@@ -114,6 +122,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
@@ -125,6 +134,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000'
 ]
+
+CORS_EXPOSE_HEADERS = ['Content-Disposition']
 
 # Celery configurations
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
