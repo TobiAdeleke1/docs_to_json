@@ -11,7 +11,8 @@ import InputGroup from 'react-bootstrap/InputGroup';
 
 function CsvUploader(){
     const [file, setFile] = useState(null);
-    const [email, setEmail] = useState(' ');
+    const [email, setEmail] = useState('');
+    const [emailResponse, setEmailResponse] = useState('');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [fileID, setFileId] = useState(null);
@@ -113,13 +114,38 @@ function CsvUploader(){
       console.log(email);
     }
  
-    const handleEmailSubmit = (e) => {
-      // e.preventDefault();
-      if (email) {
+    const handleEmailSubmit = async(e) => {
+      e.preventDefault();
+      const emailCheck = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (fileID && email) {
           console.log('Submitted email:', email);
-          // TODO: sending the email to a backend server
+
+          if (!emailCheck.test(email)){ 
+            setEmailResponse("Invalid Email Provided");
+            console.log(email + ' : '+ "Invalid Email Provided");
+            return ; 
+          };
+          
+          try{
+            const response = await fetch(`http://localhost:8000/api/email_user/${fileID}/`,{
+               method: 'POST',
+               headers:{
+                'Content-type': 'application/json'
+               },
+               body: JSON.stringify({user_email: email})
+              });
+            
+            if(!response.ok){
+              throw new Error(`Response Status ${response.status}`);
+            };
+            const emailStatus = await response.json();
+            setEmailResponse(emailStatus.message);
+
+          }catch(err){
+            console.error('Error during fetch:', err);
+            setEmailResponse(`Error: ${err.message || 'Invalid Email Provided'}`);
+          }
       }
-      console.log('Submitted email:', '');
     };
     
     const ToggleEmail = ({children , eventKey})=>{
@@ -215,15 +241,16 @@ function CsvUploader(){
             onClick={handleEmailSubmit}>
             Send
             </Button>
+           
           </InputGroup>    
+          
             </Accordion.Collapse>
           </Accordion>
+          {emailResponse && <p style={{color:'blue'}}>{emailResponse}</p>}
         </Col> 
        </Row> 
     </Card.Footer>
   </Card>);
 };
 
-
-  
 export default CsvUploader;
