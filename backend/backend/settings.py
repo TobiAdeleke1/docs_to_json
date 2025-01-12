@@ -140,3 +140,11 @@ CORS_EXPOSE_HEADERS = ['Content-Disposition']
 # Celery configurations
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Email Configuration
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587              # Typically 587 for TLS, 465 for SSL
+EMAIL_USE_TLS = True          # Use TLS for secure connections
+EMAIL_USE_SSL = False         # Set to True if using port 465
+EMAIL_HOST_USER = '*****@gmail.com'  # Your email address
+EMAIL_HOST_PASSWORD = '*****'       # Your email password or app-specific password
