@@ -12,5 +12,5 @@ urlpatterns = [
     path('download/<int:pk>/',
          JSONDownloadView.as_view(),
          name='json-download'),
-    path('email/', EmailSendView.as_view(), name='email-send'),
+    path('email_user/<int:pk>/', EmailSendView.as_view(), name='email-send'),
 ]
