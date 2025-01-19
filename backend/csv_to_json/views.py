@@ -7,7 +7,7 @@ from django.conf import settings
 from django.http import FileResponse
 from .serializers import CSVUploadSerializer
 from .models import CSVUpload
-from .task import process_csv
+from .task import process_csv, send_email
 from .util import get_filefield_name
 import os
 
@@ -19,17 +19,12 @@ def hello_world(request):
 
 class CSVUploadView(APIView):
     def post(self, request):
-
         serializer = CSVUploadSerializer(data=request.data)
-
         if serializer.is_valid():
-
             # Save file to the database
             file_instance = serializer.save()
-
             # Get formatted file name
             formatted_filename = get_filefield_name(file_instance.file.name)
-
             # Trigger Celery task
             process_csv.delay(file_instance.id,
                               formatted_filename)
@@ -67,7 +62,6 @@ class JSONDownloadView(APIView):
 
         try:
             formatted_filename = get_filefield_name(file_instance.file.name)
-
             response = FileResponse(open(json_filepath, 'rb'),
                                     as_attachment=True,
                                     filename=f'{formatted_filename}.json')
@@ -80,4 +74,24 @@ class JSONDownloadView(APIView):
 
 
 class EmailSendView(APIView):
-    pass
+    def post(self, request, pk):
+        try:
+            user_email = request.data.get('user_email')
+
+            if not user_email:
+                return Response({'message': 'Email is required'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Pass on to celery task
+            message = send_email(pk, user_email)
+            if message:
+                raise Exception(message)
+
+            return Response({'message': 'Email Successfully Sent'},
+                            status=status.HTTP_202_ACCEPTED)
+
+        except Exception as err:
+            print(err)
+            return Response({'message':
+                            'Error sending requested file to email provided.'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
