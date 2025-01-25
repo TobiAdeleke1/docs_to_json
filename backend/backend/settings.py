@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from celery.schedules import crontab
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # added for this project
+    "django_celery_beat",
     "corsheaders",
     "rest_framework",
     "csv_to_json",
@@ -140,6 +142,17 @@ CORS_EXPOSE_HEADERS = ['Content-Disposition']
 # Celery configurations
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Beat Scheduler
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseSchedular'
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    "remove_old_document": {
+        "task": "csv_to_json.task.clear_records",
+        "schedule": crontab(hour=0, minute=0)
+    }
+}
 
 # Email Configuration
 EMAIL_HOST = 'smtp.gmail.com'
