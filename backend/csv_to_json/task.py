@@ -2,6 +2,7 @@ import io
 import json
 import os
 import pandas as pd
+from datetime import timedelta
 from celery import shared_task
 from django.utils.timezone import now
 from django.core.files.storage import default_storage
@@ -71,3 +72,31 @@ def send_email(file_instance_id, user_email):
 
     except Exception as err:
         return err
+
+
+@shared_task
+def clear_records():
+    today = now()
+    yesterdate = today - timedelta(days=1)
+
+    # Get all the data that are 1 day one and deleted_at is null
+    day_old_records = CSVUpload.objects.filter(
+                       processed_at__gt=yesterdate,
+                       deleted_at__isnull=True
+                       ).values()
+
+    for item in day_old_records:
+        item_json_path = os.path.join(settings.MEDIA_ROOT, item['result_url'])
+        item_csv_path = os.path.join(settings.MEDIA_ROOT, item['file'])
+
+        try:
+            if os.path.exists(item_json_path):
+                os.remove(item_json_path)
+
+            if os.path.exists(item_csv_path):
+                os.remove(item_csv_path)
+
+            CSVUpload.objects.filter(id=item['id']).update(deleted_at=today)
+        except Exception as err:
+            print("Could not remove file at %s due to %s"
+                  % (item_csv_path, err))
